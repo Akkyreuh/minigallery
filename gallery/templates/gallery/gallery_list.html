@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mini Gallery</title>
+</head>
+<body>
+    <h1>Mini Gallery</h1>
+    
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'add_image' %}" style="background-color: #6c757d; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-right: 10px;">Ajouter par URL</a>
+        <a href="{% url 'upload_image' %}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-right: 10px;">Upload d'image</a>
+                <a href="{% url 'prediction_form' %}" style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Prédiction</a>
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div style="padding: 10px; margin-bottom: 20px; border-radius: 5px; background-color: #d4edda; color: #155724;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    {% if images %}
+        {% for image in images %}
+            <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
+                <h3>{{ image.title }}</h3>
+                {% if image.image_url %}
+                    <img src="{{ image.image_url }}" alt="{{ image.title }}" width="200" style="max-width: 100%; height: auto;">
+                {% else %}
+                    <p style="color: #666;">Aucune image disponible</p>
+                {% endif %}
+                <p><small>{{ image.created_at|date:"d/m/Y à H:i" }}</small></p>
+                {% if image.url %}
+                    <p><small>Source: ImgBB</small></p>
+                {% elif image.image_file %}
+                    <p><small>Source: Local</small></p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Aucune image dans la galerie.</p>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prédiction d'achat - Mini Gallery</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .form-container, .info-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0,123,255,0.3);
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .model-info {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+        .prediction-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .prediction-result {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .back-link a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Prédiction d'achat</h1>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="container">
+        <div class="form-container">
+            <h2>Nouvelle prédiction</h2>
+            
+            {% if model_info %}
+            <div class="model-info">
+                <strong>Modèle utilisé :</strong> {{ model_info.model_name }}<br>
+                <strong>Précision :</strong> {{ model_info.accuracy|floatformat:1 }}%<br>
+                <strong>Features :</strong> {{ model_info.features|join:", " }}
+            </div>
+            {% endif %}
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="{{ form.age.id_for_label }}">{{ form.age.label }}</label>
+                    {{ form.age }}
+                    {% if form.age.errors %}
+                        <div style="color: red; font-size: 14px; margin-top: 5px;">
+                            {{ form.age.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.gender.id_for_label }}">{{ form.gender.label }}</label>
+                    {{ form.gender }}
+                    {% if form.gender.errors %}
+                        <div style="color: red; font-size: 14px; margin-top: 5px;">
+                            {{ form.gender.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.estimated_salary.id_for_label }}">{{ form.estimated_salary.label }}</label>
+                    {{ form.estimated_salary }}
+                    {% if form.estimated_salary.errors %}
+                        <div style="color: red; font-size: 14px; margin-top: 5px;">
+                            {{ form.estimated_salary.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="btn">Faire une prédiction</button>
+            </form>
+        </div>
+        
+        <div class="info-container">
+            <h2>Prédictions récentes</h2>
+            
+            {% if recent_predictions %}
+                {% for prediction in recent_predictions %}
+                    <div class="prediction-item">
+                        <div class="prediction-result">
+                            {% if prediction.will_purchase %}
+                                Achat prédit ({{ prediction.confidence|floatformat:1 }}% confiance)
+                            {% else %}
+                                Pas d'achat prédit ({{ prediction.confidence|floatformat:1 }}% confiance)
+                            {% endif %}
+                        </div>
+                        <div style="font-size: 14px; color: #666; margin-top: 5px;">
+                            {{ prediction.gender }}, {{ prediction.age }}ans, {{ prediction.estimated_salary }}€
+                            <br><small>{{ prediction.created_at|date:"d/m/Y H:i" }}</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #666; padding: 20px;">
+                    Aucune prédiction effectuée pour le moment.
+                </p>
+            {% endif %}
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="{% url 'prediction_history' %}" class="btn" style="background-color: #6c757d; text-decoration: none; display: inline-block; width: auto; padding: 10px 20px;">
+                    Voir l'historique complet
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="back-link">
+        <a href="{% url 'gallery_list' %}">← Retour à la galerie</a>
+        <a href="{% url 'add_image' %}">Ajouter une image</a>
+        <a href="{% url 'upload_image' %}">Upload d'image</a>
+    </div>
+</body>
+</html>

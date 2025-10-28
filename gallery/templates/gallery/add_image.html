@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ajouter une image</title>
+</head>
+<body>
+    <h1>Ajouter une image</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Ajouter</button>
+    </form>
+    
+    <a href="{% url 'gallery_list' %}">Retour à la galerie</a>
+</body>
+</html>
